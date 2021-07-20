@@ -7,7 +7,7 @@ const Header = ({onClickCart}) => {
         <header className="d-flex justify-between align-center p-30">
             <Link to='/'>
                 <div className="d-flex align-center">
-                    <img width={80} height={80} src='/img/logo.png'/>
+                    <img width={80} height={80} src='/img/logo.png' alt='logo'/>
                     <div className="headerInfo">
                         <h3 className='text-uppercase'>Muradil Ltd</h3>
                         <p className='opacity-5'>Магазин лучших кроссовок!</p>
