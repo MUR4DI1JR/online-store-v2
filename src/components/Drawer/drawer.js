@@ -1,13 +1,16 @@
-import React, {useState, useContext} from 'react';
-import {ArrowRight} from "phosphor-react";
-import Info from "./info";
-import AppContext from "../context";
+import React, {useState} from 'react';
 import axios from 'axios';
+import {useCart} from "../../hooks/useCard";
+
+import Info from "../info";
+
+import styles from './drawer.module.scss';
+import {ArrowRight} from "phosphor-react";
 
 const delay = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-const Drawer = ({cartItem, onRemove, onClickCart}) => {
-    const {cartItems, setCartItems} = useContext(AppContext);
+const Drawer = ({cartItem, onRemove, onClickCart, opened}) => {
+    const {cartItems, setCartItems, totalPrice} = useCart();
     const [orderId, setOrderId] = useState(null);
     const [isOrderComplete, setIsOrderComplete] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -31,14 +34,14 @@ const Drawer = ({cartItem, onRemove, onClickCart}) => {
     };
 
     return (
-        <div className="overlay">
-            <div className="drawer">
+        <div className={`${styles.overlay} ${opened ? styles.overlayVisible : ''}`}>
+            <div className={styles.drawer}>
                 <h2 className='d-flex justify-between mb-30'>Корзина <img onClick={onClickCart} className='cu-p' src="/img/btn-remove.svg" alt="remove"/></h2>
 
                 {
                     cartItem.length > 0 ?
                         <div className='d-flex flex-column flex'>
-                            <div className="items">
+                            <div className="items flex">
                                 {
                                     cartItem.map((item, i) =>{
                                         return(
@@ -61,12 +64,12 @@ const Drawer = ({cartItem, onRemove, onClickCart}) => {
                                     <li>
                                         <span>Итого:</span>
                                         <div></div>
-                                        <b>21 456 с</b>
+                                        <b>{totalPrice} с</b>
                                     </li>
                                     <li>
                                         <span>Налог 5%:</span>
                                         <div></div>
-                                        <b>1025 с</b>
+                                        <b>{(totalPrice)/100 * 5} с</b>
                                     </li>
                                 </ul>
                                 <button disabled={isLoading} onClick={onClickOrder} className='greenButton'>Оформить заказ <ArrowRight size={24} /></button>

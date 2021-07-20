@@ -2,8 +2,8 @@ import React, {useContext} from 'react';
 import Card from "../components/Card/card";
 import AppContext from '../context';
 
-const LikeItem = ({onLiked}) => {
-    const {likeItem} = useContext(AppContext);
+const LikeItem = () => {
+    const {likeItem, onLiked} = useContext(AppContext);
 
 
     return (

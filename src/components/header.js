@@ -1,8 +1,12 @@
 import React from 'react';
 import {HeartStraight, ShoppingCart, UserCircle} from "phosphor-react";
 import {Link} from "react-router-dom";
+import {useCart} from "../hooks/useCard";
 
 const Header = ({onClickCart}) => {
+    const {totalPrice} = useCart();
+
+
     return (
         <header className="d-flex justify-between align-center p-30">
             <Link to='/'>
@@ -17,7 +21,7 @@ const Header = ({onClickCart}) => {
             <ul className="d-flex">
                 <li className='mr-30 d-flex align-center cu-p' onClick={onClickCart}>
                     <ShoppingCart size={24} className='mr-10'/>
-                    <span>1250 c.</span>
+                    <span>{totalPrice} c.</span>
                 </li>
                 <li className='mr-20 cu-p'>
                     <Link to='/likes'>
@@ -25,7 +29,9 @@ const Header = ({onClickCart}) => {
                     </Link>
                 </li>
                 <li>
-                    <UserCircle size={24}/>
+                    <Link to='/orders'>
+                        <UserCircle size={24}/>
+                    </Link>
                 </li>
             </ul>
         </header>

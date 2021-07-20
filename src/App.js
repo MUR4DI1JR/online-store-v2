@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import Header from "./components/header";
-import Drawer from "./components/drawer";
+import Drawer from "./components/Drawer/drawer";
 import {Route} from "react-router-dom";
 import Home from "./pages/Home";
 import LikeItem from "./pages/likeItem";
 import AppContext from "./context";
+import Order from "./pages/Orders";
 
 function App() {
     const [cartOpen, setCartOpen] = useState(false);
@@ -17,28 +18,48 @@ function App() {
 
     useEffect( ()=>{
         async function fetchData() {
-            const cartRes = await axios.get('https://60f54d102208920017f39ff9.mockapi.io/cart');
-            const likeRes = await axios.get('https://60f54d102208920017f39ff9.mockapi.io/likeItems');
-            const itemsRes = await axios.get('https://60f54d102208920017f39ff9.mockapi.io/items');
+            try{
+                const [cartRes, likeRes, itemsRes] = await Promise.all([
+                    axios.get('https://60f54d102208920017f39ff9.mockapi.io/cart'),
+                    axios.get('https://60f54d102208920017f39ff9.mockapi.io/likeItems'),
+                    axios.get('https://60f54d102208920017f39ff9.mockapi.io/items')
+                ]);
 
-            setIsLoading(false);
+                setIsLoading(false);
 
-            setCartItems(cartRes.data);
-            setLikeItem(likeRes.data);
-            setStore(itemsRes.data);
+                setCartItems(cartRes.data);
+                setLikeItem(likeRes.data);
+                setStore(itemsRes.data);
+            }catch (e) {
+                alert('Error 404!')
+            }
         }
 
         fetchData();
 
     }, []);
 
-    const onClickAdd = (obj) => {
-        if (cartItems.find(item => Number(item.id) === Number(obj.id))) {
-            axios.delete(`https://60f54d102208920017f39ff9.mockapi.io/cart/${obj.id}`);
-            setCartItems(prev => prev.filter(item => Number(item.id) !== Number(obj.id)))
-        } else {
-            axios.post('https://60f54d102208920017f39ff9.mockapi.io/cart', obj);
-            setCartItems(prev => [...prev, obj])
+    const onClickAdd = async (obj) => {
+        try{
+            const findItem = cartItems.find(item => Number(item.parentId) === Number(obj.id));
+            if (findItem) {
+                setCartItems(prev => prev.filter(item => Number(item.parentId) !== Number(obj.id)));
+                await axios.delete(`https://60f54d102208920017f39ff9.mockapi.io/cart/${findItem.id}`);
+            } else {
+                setCartItems(prev => [...prev, obj]);
+                const {data} = await axios.post('https://60f54d102208920017f39ff9.mockapi.io/cart', obj);
+                setCartItems(prev => prev.map(item =>{
+                    if(item.parentId === data.parentId){
+                        return{
+                            ...item,
+                            id: data.id
+                        }
+                    }
+                    return item;
+                }));
+            }
+        }catch (e) {
+            alert('Error 404!')
         }
     };
 
@@ -57,9 +78,13 @@ function App() {
 
     };
 
-    const removeItem = (id) =>{
-        axios.delete(`https://60f54d102208920017f39ff9.mockapi.io/cart/${id}`);
-        setCartItems((prev) => prev.filter(item => item.id !== id));
+    const removeItem = async (id) =>{
+        try{
+            axios.delete(`https://60f54d102208920017f39ff9.mockapi.io/cart/${id}`);
+            setCartItems((prev) => prev.filter(item => Number(item.id) !== Number(id)));
+        }catch (e) {
+            alert('Error 404!')
+        }
     };
 
     const onChangeInput = (e) =>{
@@ -67,15 +92,13 @@ function App() {
     };
 
     const isItemAdded = (id) =>{
-        return cartItems.some((obj) => Number(obj.id) === Number(id))
+        return cartItems.some((obj) => Number(obj.parentId) === Number(id))
     };
 
     return (
-        <AppContext.Provider value={{store, cartItems, likeItem, isItemAdded, setCartOpen, setCartItems}}>
+        <AppContext.Provider value={{store, cartItems, likeItem, isItemAdded, setCartOpen, setCartItems, onClickAdd, onLiked}}>
             <div className="wrapper clear">
-                {
-                    cartOpen && <Drawer cartItem={cartItems} onClickCart={() => setCartOpen(false)} onRemove={removeItem}/>
-                }
+                <Drawer cartItem={cartItems} onClickCart={() => setCartOpen(false)} onRemove={removeItem} opened={cartOpen}/>
                 <Header onClickCart={()=> setCartOpen(!cartOpen)}/>
                 <Route path='/' exact>
                     <Home
@@ -89,8 +112,11 @@ function App() {
                         isLoading={isLoading}
                     />
                 </Route>
-                <Route path='/likes'>
-                    <LikeItem  onLiked={onLiked}/>
+                <Route path='/likes' exact>
+                    <LikeItem/>
+                </Route>
+                <Route path='/orders' exact>
+                    <Order/>
                 </Route>
             </div>
         </AppContext.Provider>

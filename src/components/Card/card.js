@@ -4,16 +4,17 @@ import ContentLoader from "react-content-loader";
 import styles from './card.module.scss';
 import AppContext from "../../context";
 
-const Card = ({id, img, name, price, clickAdd, clickFavorite, favorited = false, cartAdded = false, loading = false}) => {
+const Card = ({id, img,  name, price, clickAdd, clickFavorite, favorited = false, cartAdded = false, loading = false}) => {
     const {isItemAdded} = useContext(AppContext);
     const [isLiked, setIsLiked] = useState(favorited);
+    const card = {id, parentId: id, img, name, price};
 
     const clickItem = () =>{
-        clickAdd({id, img, name, price});
+        clickAdd(card);
     };
 
     const clickLiked = () =>{
-        clickFavorite({id, img, name, price});
+        clickFavorite(card);
         setIsLiked(!isLiked)
     };
 
@@ -36,9 +37,13 @@ const Card = ({id, img, name, price, clickAdd, clickFavorite, favorited = false,
                     </ContentLoader>
                     :
                     <>
-                        <div className={styles.favorite} onClick={clickLiked}>
-                            <img src={isLiked ? "/img/heart-liked.svg" : "/img/heart-unliked.svg"} alt="unliked"/>
-                        </div>
+                        {
+                            clickFavorite
+                            &&
+                            <div className={styles.favorite} onClick={clickLiked}>
+                                <img src={isLiked ? "/img/heart-liked.svg" : "/img/heart-unliked.svg"} alt="unliked"/>
+                            </div>
+                        }
                         <img width='100%' height={170} src={img} alt=""/>
                         <h5>{name}</h5>
                         <div className='d-flex justify-between align-center'>
@@ -46,7 +51,9 @@ const Card = ({id, img, name, price, clickAdd, clickFavorite, favorited = false,
                                 <span>Цена: </span>
                                 <b>{price} c</b>
                             </div>
-                            <button className='button' onClick={clickItem}>{isItemAdded(id) ? <Check size={15}/> : <Plus size={15}/>}</button>
+                            {
+                                clickAdd && <button className={isItemAdded(id) ? styles.buttonActive : 'button'} onClick={clickItem}>{isItemAdded(id) ? <Check size={20}/> : <Plus size={15}/>}</button>
+                            }
                         </div>
                     </>
             }
